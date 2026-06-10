@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frederico para Presidencia!</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#1a1a2e;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui,-apple-system,sans-serif;color:#f0f0f0;padding:1rem;}
+  h1.title{font-size:28px;font-weight:600;margin-bottom:4px;text-align:center;color:#FFD700;text-shadow:0 2px 8px rgba(0,0,0,0.5);}
+  .subtitle{font-size:14px;color:#aaa;margin-bottom:1.5rem;text-align:center;}
+  #game-container{position:relative;width:640px;max-width:100%;}
+  #gc{display:block;border-radius:12px;border:2px solid #333;width:100%;cursor:pointer;}
+  #hud{display:flex;justify-content:space-between;align-items:center;width:100%;padding:6px 2px;font-size:13px;color:#aaa;margin-bottom:4px;}
+  #hud span{font-weight:600;color:#f0f0f0;}
+  .twarn{color:#ef4444!important;}
+  #tip{font-size:11px;color:#666;margin-top:6px;text-align:center;}
+
+  #screen-menu,#screen-gameover{width:640px;max-width:100%;background:#16213e;border-radius:12px;border:1px solid #2a2a4a;padding:2rem;display:none;flex-direction:column;align-items:center;}
+  #screen-menu.active,#screen-gameover.active{display:flex;}
+
+  .mc{background:#0f3460;border:1px solid #1a4a8a;border-radius:10px;padding:1rem 1.25rem;width:100%;max-width:500px;margin-bottom:.9rem;}
+  .mc h3{font-size:13px;font-weight:600;color:#FFD700;margin-bottom:.6rem;}
+  .mc ul{font-size:13px;color:#ccc;line-height:1.7;padding-left:1.1rem;}
+  .br{display:flex;gap:8px;flex-wrap:wrap;margin-top:.4rem;}
+  .ob{padding:7px 16px;border:1px solid #334;border-radius:8px;background:#1a1a2e;color:#ccc;font-size:13px;cursor:pointer;transition:all .15s;}
+  .ob:hover{background:#0f3460;border-color:#4a7aaa;}
+  .ob.sel{border-color:#FFD700;background:#1a3010;color:#FFD700;}
+  .sbtn{margin-top:1rem;padding:12px 36px;background:#FFD700;color:#111;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s;}
+  .sbtn:hover{background:#f0c800;}
+
+  #qo{display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);border-radius:12px;flex-direction:column;align-items:center;justify-content:center;padding:1.25rem;z-index:10;}
+  #qo.show{display:flex;}
+  #qb{background:#16213e;border-radius:12px;border:1px solid #2a2a4a;padding:1.5rem;max-width:480px;width:100%;}
+  #qb h4{font-size:14px;font-weight:600;color:#f0f0f0;margin-bottom:1rem;line-height:1.5;}
+  .qop{display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:8px;border:1px solid #334;border-radius:8px;background:#0f3460;color:#f0f0f0;font-size:13px;cursor:pointer;transition:background .15s;}
+  .qop:hover:not(:disabled){background:#1a4a8a;}
+  .qop.ok{background:#14532d;border-color:#22c55e;color:#86efac;}
+  .qop.no{background:#450a0a;border-color:#ef4444;color:#fca5a5;opacity:.4;}
+  #qfb{font-size:13px;font-weight:600;min-height:18px;margin-bottom:8px;}
+  #qsrc{font-size:11px;color:#888;margin-top:8px;line-height:1.5;}
+  #qerrlbl{font-size:12px;color:#ef4444;margin:0 0 6px;display:none;}
+  #qnxt{display:none;padding:9px 22px;background:#FFD700;color:#111;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:10px;}
+  #qnxt:hover{background:#f0c800;}
+
+  #fwo{display:none;position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;border-radius:12px;flex-direction:column;align-items:center;justify-content:center;z-index:20;}
+  #fwo.show{display:flex;}
+  #fwc{position:absolute;top:0;left:0;width:100%;height:100%;}
+  #fwm{font-size:20px;font-weight:700;color:#FFD700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:1;}
+
+  #gob{text-align:center;width:100%;}
+  #gob h2{font-size:24px;font-weight:700;color:#FFD700;margin-bottom:.4rem;}
+  #gob p{font-size:14px;color:#aaa;margin-bottom:1.5rem;}
+  .sts{display:flex;gap:14px;justify-content:center;margin-bottom:1.5rem;flex-wrap:wrap;}
+  .sb{background:#0f3460;border:1px solid #1a4a8a;border-radius:8px;padding:12px 20px;min-width:90px;text-align:center;}
+  .sb .v{font-size:26px;font-weight:700;color:#FFD700;}
+  .sb .l{font-size:11px;color:#888;margin-top:2px;}
+
+  @media(max-width:660px){
+    #game-container,#screen-menu,#screen-gameover{width:100%;}
+    h1.title{font-size:22px;}
+  }
+</style>
+</head>
+<body>
+
+<h1 class="title">Frederico para Presidencia!</h1>
+<p class="subtitle">Corra pela floresta e prove que conhece a historia do Brasil</p>
+
+<div id="screen-menu" class="active">
+  <div class="mc">
+    <h3>Como jogar</h3>
+    <ul>
+      <li><b>Seta direita / esquerda</b> para mover</li>
+      <li><b>Espaco ou seta para cima</b> para pular — segure para pular mais alto</li>
+      <li>Colete argolas douradas pelo caminho</li>
+      <li>Ao bater num inimigo: responda a pergunta. Acertou = fogos e volta. Errou = tenta de novo ate acertar</li>
+      <li>Chegue a META antes do tempo acabar</li>
+    </ul>
+  </div>
+  <div class="mc">
+    <h3>Dificuldade</h3>
+    <div class="br" id="db">
+      <button class="ob sel" data-val="easy">Facil (perde 1)</button>
+      <button class="ob" data-val="medium">Medio (perde 2)</button>
+      <button class="ob" data-val="hard">Dificil (perde 3)</button>
+    </div>
+    <h3 style="margin-top:.8rem;">Idioma</h3>
+    <div class="br" id="lb">
+      <button class="ob sel" data-val="pt">Portugues</button>
+      <button class="ob" data-val="en">English</button>
+    </div>
+  </div>
+  <button class="sbtn" id="bs">Jogar agora</button>
+</div>
+
+<div id="game-container" style="display:none;">
+  <div id="hud">
+    <div>Fase <span id="hp">1</span></div>
+    <div style="color:#FFD700;font-weight:600;">Argolas: <span id="hr">10</span></div>
+    <div id="ht">Tempo: <span id="htv">5:00</span></div>
+  </div>
+  <canvas id="gc" width="640" height="320" tabindex="0"></canvas>
+  <div id="qo">
+    <div id="qb">
+      <div id="qfb"></div>
+      <h4 id="qt"></h4>
+      <div id="qerrlbl"></div>
+      <button class="qop" id="q0"></button>
+      <button class="qop" id="q1"></button>
+      <button class="qop" id="q2"></button>
+      <div id="qsrc"></div>
+      <button id="qnxt">Continuar jogando</button>
+    </div>
+  </div>
+  <div id="fwo">
+    <canvas id="fwc"></canvas>
+    <div id="fwm"></div>
+  </div>
+  <p id="tip">Clique no canvas para ativar os controles · Setas para mover · Espaco para pular</p>
+</div>
+
+<div id="screen-gameover">
+  <div id="gob">
+    <h2 id="got"></h2>
+    <p id="gos"></p>
+    <div class="sts">
+      <div class="sb"><div class="v" id="gor">0</div><div class="l">argolas</div></div>
+      <div class="sb"><div class="v" id="goc">0</div><div class="l">acertos</div></div>
+      <div class="sb"><div class="v" id="gow">0</div><div class="l">erros</div></div>
+    </div>
+    <button class="sbtn" id="ba">Jogar de novo</button>
+  </div>
+</div>
+
+<script>
+const QS={
+pt:[
+{q:"Quem foi o primeiro presidente do Brasil, em 1889?",opts:["Deodoro da Fonseca","Floriano Peixoto","Prudente de Morais"],ans:0,src:"Marechal Deodoro da Fonseca proclamou a Republica e assumiu a presidencia em 15 de novembro de 1889."},
+{q:"Qual presidente ficou conhecido como o 'Marechal de Ferro'?",opts:["Floriano Peixoto","Deodoro da Fonseca","Campos Sales"],ans:0,src:"Floriano Peixoto (1891-1894) recebeu o apelido por sua postura autoritaria e repressora."},
+{q:"Qual foi o primeiro presidente civil do Brasil?",opts:["Prudente de Morais","Campos Sales","Rodrigues Alves"],ans:0,src:"Prudente de Morais (1894-1898) foi o primeiro presidente civil da Republica."},
+{q:"A 'Politica do Cafe com Leite' alternava presidentes de quais estados?",opts:["Sao Paulo e Minas Gerais","Rio de Janeiro e Bahia","Sao Paulo e Rio Grande do Sul"],ans:0,src:"SP e MG alternaram o poder durante a Primeira Republica (1894-1930)."},
+{q:"Quem foi presidente quando ocorreu a Revolucao de 1930?",opts:["Washington Luis","Getulio Vargas","Epitacio Pessoa"],ans:0,src:"Washington Luis foi deposto pela Revolucao de 1930 antes de terminar o mandato."},
+{q:"Por quantos anos Getulio Vargas governou o Brasil no total?",opts:["18 anos","10 anos","25 anos"],ans:0,src:"Vargas governou de 1930-1945 e de 1951-1954, totalizando cerca de 18 anos."},
+{q:"O Estado Novo de Getulio Vargas foi instaurado em que ano?",opts:["1937","1930","1945"],ans:0,src:"O Estado Novo foi instaurado por Vargas em 10 de novembro de 1937."},
+{q:"Como morreu Getulio Vargas?",opts:["Suicidio em 1954","Doenca em 1955","Exilio em 1956"],ans:0,src:"Vargas suicidou-se com um tiro no coracao em 24 de agosto de 1954, no Palacio do Catete."},
+{q:"Quem foi presidente quando Brasilia foi inaugurada em 1960?",opts:["Juscelino Kubitschek","Janio Quadros","Joao Goulart"],ans:0,src:"JK inaugurou Brasilia em 21 de abril de 1960, transferindo a capital do Rio de Janeiro."},
+{q:"Em que ano Janio Quadros renunciou a presidencia?",opts:["1961","1963","1959"],ans:0,src:"Janio Quadros renunciou em 25 de agosto de 1961, surpreendendo o pais."},
+{q:"Qual presidente foi deposto pelo golpe militar de 1964?",opts:["Joao Goulart","Janio Quadros","Juscelino Kubitschek"],ans:0,src:"Joao Goulart (Jango) foi deposto em 31 de marco/1 de abril de 1964 pelo golpe civil-militar."},
+{q:"Quem foi o primeiro presidente do regime militar (1964)?",opts:["Castelo Branco","Costa e Silva","Medici"],ans:0,src:"Humberto Castelo Branco governou de 1964 a 1967, sendo o primeiro presidente do regime militar."},
+{q:"O 'Milagre Economico' brasileiro ocorreu durante qual governo?",opts:["Medici","Costa e Silva","Geisel"],ans:0,src:"O Milagre Economico (1968-1973) ocorreu no governo Emilio Garrastazu Medici."},
+{q:"Qual presidente iniciou a abertura politica do regime militar?",opts:["Ernesto Geisel","Medici","Figueiredo"],ans:0,src:"Geisel (1974-1979) iniciou a distensao 'lenta, gradual e segura'."},
+{q:"Quem foi o ultimo presidente do regime militar?",opts:["Joao Figueiredo","Ernesto Geisel","Costa e Silva"],ans:0,src:"Joao Baptista Figueiredo governou de 1979 a 1985, sendo o ultimo presidente militar."},
+{q:"Tancredo Neves foi eleito em 1985 mas quem assumiu a presidencia?",opts:["Jose Sarney","Ulysses Guimaraes","Fernando Henrique"],ans:0,src:"Tancredo faleceu antes da posse. Jose Sarney assumiu em 15 de marco de 1985."},
+{q:"Quem foi o primeiro presidente eleito diretamente apos a ditadura?",opts:["Fernando Collor","Jose Sarney","Itamar Franco"],ans:0,src:"Fernando Collor de Mello venceu as eleicoes diretas de 1989 com 53% no segundo turno."},
+{q:"Fernando Collor sofreu impeachment em que ano?",opts:["1992","1994","1991"],ans:0,src:"O impeachment de Collor foi concluido em 29 de dezembro de 1992, por corrupcao."},
+{q:"O Plano Real foi lancado durante qual governo?",opts:["Itamar Franco","Fernando Henrique","Collor"],ans:0,src:"O Plano Real foi implementado em 1 de julho de 1994, no governo Itamar Franco."},
+{q:"Fernando Henrique Cardoso governou por quantos mandatos?",opts:["2 mandatos (1995-2003)","1 mandato","3 mandatos"],ans:0,src:"FHC foi reeleito em 1998, governando dois mandatos consecutivos ate 2003."},
+{q:"Lula foi eleito presidente pela primeira vez em que ano?",opts:["2002","1998","2006"],ans:0,src:"Luiz Inacio Lula da Silva foi eleito em outubro de 2002, apos tres tentativas anteriores."},
+{q:"Em qual governo foi criado o Programa Bolsa Familia?",opts:["Lula (2003)","FHC (2001)","Dilma (2011)"],ans:0,src:"O Bolsa Familia foi criado em outubro de 2003, no primeiro ano do governo Lula."},
+{q:"Em que ano Dilma Rousseff tomou posse como primeira mulher presidente?",opts:["2011","2010","2013"],ans:0,src:"Dilma Rousseff tomou posse em 1 de janeiro de 2011, eleita em outubro de 2010."},
+{q:"Dilma Rousseff sofreu impeachment em que ano?",opts:["2016","2015","2017"],ans:0,src:"O impeachment de Dilma foi concluido em 31 de agosto de 2016, por pedaladas fiscais."},
+{q:"Quem assumiu apos o impeachment de Dilma?",opts:["Michel Temer","Eduardo Cunha","Rodrigo Maia"],ans:0,src:"Michel Temer, vice-presidente, assumiu em 31 de agosto de 2016 e governou ate 2018."},
+{q:"Jair Bolsonaro governou o Brasil entre quais anos?",opts:["2019-2022","2018-2021","2020-2023"],ans:0,src:"Jair Bolsonaro governou de 1 de janeiro de 2019 a 31 de dezembro de 2022."},
+{q:"Lula venceu seu terceiro mandato em 2022 derrotando quem?",opts:["Bolsonaro","Michel Temer","Alckmin"],ans:0,src:"Lula derrotou Bolsonaro no segundo turno de outubro de 2022 com 50,9% dos votos."},
+{q:"O que aconteceu em Brasilia em 8 de janeiro de 2023?",opts:["Ataques ao Congresso, STF e Planalto","Tentativa de golpe no TSE","Greve geral nacional"],ans:0,src:"Apoiadores de Bolsonaro invadiram e depredaram o Congresso, STF e Planalto em 8 de janeiro de 2023."},
+{q:"Qual programa habitacional o governo Lula relancou em 2023?",opts:["Minha Casa Minha Vida","Casa Verde Amarela","Morar Bem"],ans:0,src:"O governo Lula relancou o Minha Casa Minha Vida em 2023, ampliando o programa habitacional."},
+{q:"Quem e o presidente do Brasil em 2026?",opts:["Luiz Inacio Lula da Silva","Jair Bolsonaro","Geraldo Alckmin"],ans:0,src:"Lula (PT) governa o Brasil desde 1 de janeiro de 2023, cumprindo seu terceiro mandato."},
+],
+en:[
+{q:"Who was Brazil's first president, in 1889?",opts:["Deodoro da Fonseca","Floriano Peixoto","Prudente de Morais"],ans:0,src:"Marshal Deodoro da Fonseca proclaimed the Republic and took the presidency on November 15, 1889."},
+{q:"Which president was known as the 'Iron Marshal'?",opts:["Floriano Peixoto","Deodoro da Fonseca","Campos Sales"],ans:0,src:"Floriano Peixoto (1891-1894) earned the nickname for his authoritarian and repressive stance."},
+{q:"Who was Brazil's first civilian president?",opts:["Prudente de Morais","Campos Sales","Rodrigues Alves"],ans:0,src:"Prudente de Morais (1894-1898) was the Republic's first civilian president."},
+{q:"The 'Coffee with Milk' politics alternated presidents from which states?",opts:["Sao Paulo and Minas Gerais","Rio and Bahia","Sao Paulo and Rio Grande do Sul"],ans:0,src:"SP and MG alternated in power throughout the First Republic (1894-1930)."},
+{q:"Who was president when the Revolution of 1930 broke out?",opts:["Washington Luis","Getulio Vargas","Epitacio Pessoa"],ans:0,src:"Washington Luis was overthrown by the 1930 Revolution before completing his term."},
+{q:"How many years did Getulio Vargas govern Brazil in total?",opts:["18 years","10 years","25 years"],ans:0,src:"Vargas governed from 1930-1945 and 1951-1954, totaling approximately 18 years."},
+{q:"In what year did Vargas establish the Estado Novo dictatorship?",opts:["1937","1930","1945"],ans:0,src:"The Estado Novo was established on November 10, 1937."},
+{q:"How did Getulio Vargas die?",opts:["Suicide in 1954","Illness in 1955","Exile in 1956"],ans:0,src:"Vargas shot himself in the heart on August 24, 1954, at the Catete Palace."},
+{q:"Who was president when Brasilia was inaugurated in 1960?",opts:["Juscelino Kubitschek","Janio Quadros","Joao Goulart"],ans:0,src:"JK inaugurated Brasilia on April 21, 1960, moving the capital from Rio de Janeiro."},
+{q:"In what year did Janio Quadros resign?",opts:["1961","1963","1959"],ans:0,src:"Janio Quadros resigned on August 25, 1961, surprising the entire country."},
+{q:"Which president was ousted by the 1964 military coup?",opts:["Joao Goulart","Janio Quadros","Juscelino Kubitschek"],ans:0,src:"Joao Goulart (Jango) was deposed on March 31/April 1, 1964."},
+{q:"Who was the first president of the military regime (1964)?",opts:["Castelo Branco","Costa e Silva","Medici"],ans:0,src:"Humberto Castelo Branco governed from 1964 to 1967."},
+{q:"Brazil's 'Economic Miracle' occurred during which government?",opts:["Medici","Costa e Silva","Geisel"],ans:0,src:"The Economic Miracle (1968-1973) occurred under Emilio Garrastazu Medici."},
+{q:"Which president began the political opening of the military regime?",opts:["Ernesto Geisel","Medici","Figueiredo"],ans:0,src:"Geisel (1974-1979) began the 'slow, gradual, and safe' political distension."},
+{q:"Who was the last president of the military regime?",opts:["Joao Figueiredo","Ernesto Geisel","Costa e Silva"],ans:0,src:"Joao Baptista Figueiredo governed from 1979 to 1985."},
+{q:"Tancredo Neves was elected in 1985 — who took office instead?",opts:["Jose Sarney","Ulysses Guimaraes","Fernando Henrique"],ans:0,src:"Tancredo died before taking office. Jose Sarney assumed on March 15, 1985."},
+{q:"Who was the first directly elected president after the dictatorship?",opts:["Fernando Collor","Jose Sarney","Itamar Franco"],ans:0,src:"Fernando Collor de Mello won the 1989 direct elections with 53% in the runoff."},
+{q:"In what year was Fernando Collor impeached?",opts:["1992","1994","1991"],ans:0,src:"Collor's impeachment was finalized on December 29, 1992, on corruption charges."},
+{q:"The Plano Real was launched under which president?",opts:["Itamar Franco","Fernando Henrique","Collor"],ans:0,src:"The Plano Real was implemented on July 1, 1994, under Itamar Franco."},
+{q:"How many terms did Fernando Henrique Cardoso serve?",opts:["2 terms (1995-2003)","1 term","3 terms"],ans:0,src:"FHC was re-elected in 1998, governing two consecutive terms until 2003."},
+{q:"In what year was Lula first elected president?",opts:["2002","1998","2006"],ans:0,src:"Luiz Inacio Lula da Silva was elected in October 2002, on his fourth attempt."},
+{q:"Under which government was the Bolsa Familia program created?",opts:["Lula (2003)","FHC (2001)","Dilma (2011)"],ans:0,src:"Bolsa Familia was created in October 2003, in Lula's first year in office."},
+{q:"In what year did Dilma Rousseff take office as Brazil's first female president?",opts:["2011","2010","2013"],ans:0,src:"Dilma Rousseff took office on January 1, 2011, elected in October 2010."},
+{q:"In what year was Dilma Rousseff impeached?",opts:["2016","2015","2017"],ans:0,src:"Dilma's impeachment was finalized on August 31, 2016, over fiscal irregularities."},
+{q:"Who took office after Dilma's impeachment?",opts:["Michel Temer","Eduardo Cunha","Rodrigo Maia"],ans:0,src:"Vice-president Michel Temer assumed on August 31, 2016 and governed until 2018."},
+{q:"Between which years did Jair Bolsonaro govern Brazil?",opts:["2019-2022","2018-2021","2020-2023"],ans:0,src:"Jair Bolsonaro governed from January 1, 2019 to December 31, 2022."},
+{q:"Lula won his third term in 2022, defeating whom?",opts:["Bolsonaro","Michel Temer","Alckmin"],ans:0,src:"Lula defeated Bolsonaro in the October 2022 runoff with 50.9% of the vote."},
+{q:"What major event happened in Brasilia on January 8, 2023?",opts:["Attacks on Congress, STF and Planalto","Coup attempt at TSE","National general strike"],ans:0,src:"Bolsonaro supporters invaded and vandalized Congress, the Supreme Court and the Presidential Palace on Jan 8, 2023."},
+{q:"Which housing program did the Lula government relaunch in 2023?",opts:["Minha Casa Minha Vida","Casa Verde Amarela","Morar Bem"],ans:0,src:"The Lula government relaunched Minha Casa Minha Vida in 2023, expanding the housing program."},
+{q:"Who is Brazil's president in 2026?",opts:["Luiz Inacio Lula da Silva","Jair Bolsonaro","Geraldo Alckmin"],ans:0,src:"Lula (PT) has been governing Brazil since January 1, 2023, serving his third term."},
+]};
+
+const T={
+pt:{correct:"Correto! Frederico agradece!",wrong:"Errado — tente outra opcao:",src:"Fonte:",cont:"Continuar jogando",timeup:"Tempo esgotado!",win:"Fase concluida!",lose:"Fim de jogo!",winsub:"Frederico chegou la!",losesub:"Nao foi dessa vez. Mas voce aprendeu mais sobre o Brasil!",again:"Jogar de novo"},
+en:{correct:"Correct! Frederico thanks you!",wrong:"Wrong — try another option:",src:"Source:",cont:"Keep playing",timeup:"Time's up!",win:"Phase complete!",lose:"Game over!",winsub:"Frederico made it!",losesub:"Not this time — but you learned more about Brazilian history!",again:"Play again"}};
+
+let cfg={diff:'easy',lang:'pt'};
+let st={};
+let gameRaf=null,tmr=null;
+
+const CANVAS_W=640,CANVAS_H=320,GROUND_Y=250;
+const CAT_W=22,CAT_H=26,ENEMY_W=22,ENEMY_H=22,RING_R=8;
+
+const cv=document.getElementById('gc');
+const ctx=cv.getContext('2d');
+const fwcv=document.getElementById('fwc');
+const fwx=fwcv.getContext('2d');
+
+document.querySelectorAll('#db .ob').forEach(b=>b.onclick=()=>{document.querySelectorAll('#db .ob').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');cfg.diff=b.dataset.val;});
+document.querySelectorAll('#lb .ob').forEach(b=>b.onclick=()=>{document.querySelectorAll('#lb .ob').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');cfg.lang=b.dataset.val;});
+document.getElementById('bs').onclick=startGame;
+document.getElementById('ba').onclick=()=>{document.getElementById('screen-gameover').classList.remove('active');document.getElementById('screen-menu').classList.add('active');document.getElementById('game-container').style.display='none';};
+cv.addEventListener('click',()=>cv.focus());
+
+const keys={};
+document.addEventListener('keydown',e=>{
+  if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code)){
+    if(document.getElementById('game-container').style.display!=='none') e.preventDefault();
+  }
+  keys[e.code]=true;
+});
+document.addEventListener('keyup',e=>{keys[e.code]=false;});
+
+function startGame(){
+  const pen={easy:1,medium:2,hard:3};
+  st={x:60,y:GROUND_Y,vx:0,vy:0,onGround:true,jumpHeld:false,jumpFrames:0,facingRight:true,
+    rings:10,phase:1,timeLeft:300,correct:0,wrong:0,paused:false,reached:false,
+    penalty:pen[cfg.diff],questions:shuffle([...QS[cfg.lang]]),qIdx:0,wrongOpts:[],currentQ:null,
+    enemies:[],ringItems:[],camX:0,worldLen:2800,hitCooldown:0,particles:[]};
+  genWorld();
+  document.getElementById('screen-menu').classList.remove('active');
+  document.getElementById('screen-gameover').classList.remove('active');
+  document.getElementById('game-container').style.display='block';
+  updateHUD();
+  tmr=setInterval(tickTimer,1000);
+  gameRaf=requestAnimationFrame(loop);
+  setTimeout(()=>cv.focus(),50);
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function genWorld(){
+  st.enemies=[];st.ringItems=[];
+  for(let i=0;i<18;i++) st.ringItems.push({x:280+Math.random()*(st.worldLen-500),y:GROUND_Y-Math.floor(Math.random()*3)*30,col:false});
+  const ec=6+st.phase*2;
+  for(let i=0;i<ec;i++) st.enemies.push({x:380+Math.random()*(st.worldLen-600),y:GROUND_Y,dir:Math.random()>0.5?1:-1,type:Math.random()>0.5?'bug':'plant',spd:0.9+Math.random()*0.8});
+}
+
+function tickTimer(){
+  if(st.paused||st.reached)return;
+  st.timeLeft--;updateHUD();
+  if(st.timeLeft<=0)endGame(false,T[cfg.lang].timeup);
+}
+
+function updateHUD(){
+  const m=Math.floor(st.timeLeft/60),s=st.timeLeft%60;
+  document.getElementById('htv').textContent=`${m}:${String(s).padStart(2,'0')}`;
+  document.getElementById('ht').className=st.timeLeft<=30?'twarn':'';
+  document.getElementById('hr').textContent=st.rings;
+  document.getElementById('hp').textContent=st.phase;
+}
+
+function loop(){update();draw();gameRaf=requestAnimationFrame(loop);}
+
+function update(){
+  if(st.paused||st.reached)return;
+  if(st.hitCooldown>0)st.hitCooldown--;
+  if(keys['ArrowRight']){st.vx=3.5;st.facingRight=true;}
+  else if(keys['ArrowLeft']){st.vx=-3.5;st.facingRight=false;}
+  else st.vx=0;
+  const jumpKey=keys['Space']||keys['ArrowUp'];
+  if(jumpKey&&st.onGround){st.vy=-14;st.onGround=false;st.jumpHeld=true;st.jumpFrames=0;}
+  if(jumpKey&&st.jumpHeld&&!st.onGround&&st.jumpFrames<12){st.vy-=0.7;st.jumpFrames++;}
+  if(!jumpKey)st.jumpHeld=false;
+  const gravity=st.jumpHeld&&!st.onGround&&st.jumpFrames<12?0.5:0.9;
+  st.vy+=gravity;if(st.vy>14)st.vy=14;
+  st.x+=st.vx;st.y+=st.vy;
+  st.x=Math.max(0,Math.min(st.x,st.worldLen-CAT_W));
+  if(st.y>=GROUND_Y){st.y=GROUND_Y;st.vy=0;st.onGround=true;st.jumpHeld=false;st.jumpFrames=0;}
+  const camT=st.x-200;st.camX+=(camT-st.camX)*0.15;
+  st.camX=Math.max(0,Math.min(st.camX,st.worldLen-CANVAS_W));
+  st.enemies.forEach(e=>{
+    e.x+=e.dir*e.spd;if(e.x<80||e.x>st.worldLen-80)e.dir*=-1;
+    if(st.hitCooldown===0){
+      const dx=Math.abs((st.x+CAT_W/2)-(e.x+ENEMY_W/2)),dy=Math.abs((st.y+CAT_H/2)-(e.y+ENEMY_H/2));
+      if(dx<(CAT_W+ENEMY_W)/2-4&&dy<(CAT_H+ENEMY_H)/2-4)triggerQ();
+    }
+  });
+  st.ringItems.forEach(r=>{
+    if(r.col)return;
+    if(Math.abs((st.x+CAT_W/2)-r.x)<CAT_W/2+RING_R+4&&Math.abs((st.y+CAT_H/2)-r.y)<CAT_H/2+RING_R+4){
+      r.col=true;st.rings++;updateHUD();
+      for(let i=0;i<8;i++) st.particles.push({x:r.x-st.camX,y:r.y,vx:(Math.random()-.5)*4,vy:-2-Math.random()*2,life:1,color:'#FFD700'});
+    }
+  });
+  st.particles=st.particles.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.2;p.life-=0.04;return p.life>0;});
+  if(st.x+CAT_W>=st.worldLen-10)finishPhase();
+}
+
+function triggerQ(){
+  if(st.paused)return;
+  st.paused=true;st.hitCooldown=200;
+  st.currentQ=st.questions[st.qIdx%st.questions.length];st.qIdx++;
+  st.wrongOpts=[];renderQ(false);
+  document.getElementById('qo').classList.add('show');
+}
+
+function renderQ(isRetry){
+  const t=T[cfg.lang],q=st.currentQ;
+  document.getElementById('qt').textContent=q.q;
+  document.getElementById('qfb').textContent='';document.getElementById('qfb').style.color='';
+  document.getElementById('qsrc').textContent='';document.getElementById('qnxt').style.display='none';
+  const errl=document.getElementById('qerrlbl');
+  errl.style.display=isRetry?'block':'none';if(isRetry)errl.textContent=t.wrong;
+  for(let i=0;i<3;i++){
+    const btn=document.getElementById('q'+i);
+    btn.textContent=q.opts[i];btn.className='qop';
+    const isW=st.wrongOpts.includes(i);btn.disabled=isW;btn.style.opacity=isW?'0.35':'1';
+    btn.onclick=isW?null:()=>answerQ(i);
+  }
+}
+
+function answerQ(idx){
+  const t=T[cfg.lang],q=st.currentQ;
+  for(let i=0;i<3;i++)document.getElementById('q'+i).disabled=true;
+  if(idx===q.ans){
+    st.correct++;
+    document.getElementById('q'+idx).classList.add('ok');
+    document.getElementById('qfb').textContent=t.correct;document.getElementById('qfb').style.color='#22c55e';
+    document.getElementById('qsrc').textContent=t.src+' '+q.src;
+    document.getElementById('qnxt').style.display='inline-block';document.getElementById('qnxt').textContent=t.cont;
+    document.getElementById('qnxt').onclick=()=>{
+      document.getElementById('qo').classList.remove('show');st.paused=false;cv.focus();showFireworks();
+    };
+  } else {
+    st.wrong++;st.wrongOpts.push(idx);st.rings=Math.max(0,st.rings-st.penalty);updateHUD();
+    document.getElementById('q'+idx).classList.add('no');
+    const remaining=q.opts.filter((_,i)=>!st.wrongOpts.includes(i));
+    if(remaining.length===1){
+      const lastIdx=q.opts.findIndex((_,i)=>!st.wrongOpts.includes(i));
+      setTimeout(()=>{
+        for(let i=0;i<3;i++) document.getElementById('q'+i).disabled=true;
+        document.getElementById('q'+lastIdx).classList.add('ok');
+        document.getElementById('qsrc').textContent=t.src+' '+q.src;
+        document.getElementById('qerrlbl').style.display='none';
+        document.getElementById('qnxt').style.display='inline-block';document.getElementById('qnxt').textContent=t.cont;
+        document.getElementById('qnxt').onclick=()=>{
+          document.getElementById('qo').classList.remove('show');st.paused=false;cv.focus();
+          if(st.rings<=0)endGame(false,'');
+        };
+      },700);
+    } else {
+      setTimeout(()=>{renderQ(true);for(let i=0;i<3;i++){const isW=st.wrongOpts.includes(i);document.getElementById('q'+i).disabled=isW;document.getElementById('q'+i).style.opacity=isW?'0.35':'1';}},700);
+    }
+  }
+}
+
+function finishPhase(){if(st.reached)return;st.reached=true;st.paused=true;clearInterval(tmr);setTimeout(()=>endGame(true,''),400);}
+
+function endGame(win,reason){
+  clearInterval(tmr);cancelAnimationFrame(gameRaf);
+  const t=T[cfg.lang];
+  document.getElementById('got').textContent=win?t.win:(reason||t.lose);
+  document.getElementById('gos').textContent=win?t.winsub:t.losesub;
+  document.getElementById('gor').textContent=st.rings;
+  document.getElementById('goc').textContent=st.correct;
+  document.getElementById('gow').textContent=st.wrong;
+  document.getElementById('game-container').style.display='none';
+  document.getElementById('screen-gameover').classList.add('active');
+}
+
+function draw(){
+  ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+  const cam=Math.round(st.camX);
+  ctx.fillStyle='#1a3a5c';ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+  for(let i=0;i<6;i++){const wx=((i*160-cam*0.25+st.worldLen*2)%(CANVAS_W+200))-50;drawCloud(ctx,wx,20+i*15);}
+  ctx.fillStyle='#2d5a1b';ctx.fillRect(0,GROUND_Y+CAT_H,CANVAS_W,CANVAS_H-(GROUND_Y+CAT_H));
+  ctx.fillStyle='#3a7a22';ctx.fillRect(0,GROUND_Y+CAT_H,CANVAS_W,5);
+  for(let i=0;i<10;i++){const fx=((i*210-cam*0.6)%(st.worldLen+300));if(fx>-60&&fx<CANVAS_W+60)drawTree(ctx,fx,GROUND_Y+CAT_H);}
+  const metaX=st.worldLen-40-cam;
+  if(metaX>-30&&metaX<CANVAS_W+30){
+    ctx.fillStyle='#FFD700';ctx.fillRect(metaX-1,GROUND_Y-50,3,60);
+    ctx.fillStyle='#ef4444';ctx.fillRect(metaX,GROUND_Y-50,22,14);
+    ctx.fillStyle='#fff';ctx.font='bold 9px sans-serif';ctx.fillText('META',metaX+1,GROUND_Y-40);
+  }
+  st.ringItems.forEach(r=>{
+    if(r.col)return;const sx=r.x-cam;if(sx<-20||sx>CANVAS_W+20)return;
+    const bob=Math.sin(Date.now()/300+r.x)*2;
+    ctx.fillStyle='#FFD700';ctx.strokeStyle='#B8860B';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(sx,r.y-10+bob,RING_R,0,Math.PI*2);ctx.fill();ctx.stroke();
+  });
+  st.particles.forEach(p=>{ctx.globalAlpha=p.life;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();});
+  ctx.globalAlpha=1;
+  st.enemies.forEach(e=>{const sx=e.x-cam;if(sx<-40||sx>CANVAS_W+40)return;if(e.type==='bug')drawBug(ctx,sx,e.y,e.dir);else drawPlant(ctx,sx,e.y);});
+  drawCat(ctx,st.x-cam,st.y,st.facingRight,!st.onGround);
+}
+
+function drawCloud(c,x,y){c.fillStyle='rgba(255,255,255,0.15)';c.beginPath();c.arc(x,y,16,0,Math.PI*2);c.fill();c.beginPath();c.arc(x+20,y+3,12,0,Math.PI*2);c.fill();c.beginPath();c.arc(x-14,y+5,10,0,Math.PI*2);c.fill();}
+function drawTree(c,x,y){c.fillStyle='#5D4037';c.fillRect(x+9,y-42,8,42);c.fillStyle='#1b5e20';c.beginPath();c.arc(x+13,y-52,19,0,Math.PI*2);c.fill();c.beginPath();c.arc(x+3,y-40,13,0,Math.PI*2);c.fill();c.beginPath();c.arc(x+25,y-38,13,0,Math.PI*2);c.fill();}
+
+function drawCat(c,x,y,right,inAir){
+  c.save();
+  if(!right){c.translate(x+CAT_W,0);c.scale(-1,1);x=0;}
+  const f=Math.floor(Date.now()/100)%4;
+  const legSwing=inAir?6:f<2?3:0;
+  c.fillStyle='#111';c.beginPath();c.arc(x+11,y-CAT_H+6,11,0,Math.PI*2);c.fill();
+  c.fillStyle='#111';
+  c.beginPath();c.moveTo(x+5,y-CAT_H+1);c.lineTo(x+1,y-CAT_H-10);c.lineTo(x+9,y-CAT_H+3);c.fill();
+  c.beginPath();c.moveTo(x+17,y-CAT_H+1);c.lineTo(x+21,y-CAT_H-10);c.lineTo(x+13,y-CAT_H+3);c.fill();
+  c.fillStyle='#1a1a1a';c.beginPath();c.roundRect(x+3,y-CAT_H+14,16,14,3);c.fill();
+  c.fillStyle='#ddf0dd';c.beginPath();c.ellipse(x+8,y-CAT_H+4,3.5,3,0,0,Math.PI*2);c.fill();c.beginPath();c.ellipse(x+14,y-CAT_H+4,3.5,3,0,0,Math.PI*2);c.fill();
+  c.fillStyle='#7c3aed';c.beginPath();c.ellipse(x+8,y-CAT_H+4,1.8,2.2,0,0,Math.PI*2);c.fill();c.beginPath();c.ellipse(x+14,y-CAT_H+4,1.8,2.2,0,0,Math.PI*2);c.fill();
+  c.strokeStyle='#555';c.lineWidth=1.5;c.beginPath();c.moveTo(x+7,y-2);c.lineTo(x+5,y+legSwing);c.stroke();c.beginPath();c.moveTo(x+15,y-2);c.lineTo(x+17,y+legSwing);c.stroke();
+  c.strokeStyle='#555';c.lineWidth=1.5;c.beginPath();c.moveTo(x+19,y-CAT_H+20);c.quadraticCurveTo(x+32,y-CAT_H+10,x+26,y-CAT_H+24);c.stroke();
+  c.restore();
+}
+
+function drawBug(c,x,y,dir){
+  c.save();if(dir<0){c.translate(x+ENEMY_W,0);c.scale(-1,1);x=0;}
+  c.fillStyle='#dc2626';c.beginPath();c.ellipse(x+11,y+8,11,8,0,0,Math.PI*2);c.fill();
+  c.strokeStyle='#7f1d1d';c.lineWidth=1;c.beginPath();c.moveTo(x+11,y);c.lineTo(x+11,y+16);c.stroke();
+  c.fillStyle='#7f1d1d';c.beginPath();c.arc(x+11,y-1,7,0,Math.PI*2);c.fill();
+  c.strokeStyle='#111';c.lineWidth=0.8;c.beginPath();c.moveTo(x+3,y+4);c.lineTo(x-5,y-1);c.stroke();c.beginPath();c.moveTo(x+3,y+9);c.lineTo(x-5,y+9);c.stroke();
+  c.fillStyle='#fff';c.beginPath();c.arc(x+8,y-2,2,0,Math.PI*2);c.fill();c.beginPath();c.arc(x+14,y-2,2,0,Math.PI*2);c.fill();
+  c.restore();
+}
+
+function drawPlant(c,x,y){
+  c.fillStyle='#166534';c.fillRect(x+9,y,4,22);
+  c.fillStyle='#16a34a';c.beginPath();c.ellipse(x+5,y+4,8,12,Math.PI*0.2,0,Math.PI*2);c.fill();c.beginPath();c.ellipse(x+17,y+6,8,11,-Math.PI*0.2,0,Math.PI*2);c.fill();
+  c.fillStyle='#dc2626';c.beginPath();c.arc(x+11,y-8,7,0,Math.PI*2);c.fill();
+  c.fillStyle='#fbbf24';c.beginPath();c.arc(x+11,y-8,3.5,0,Math.PI*2);c.fill();
+}
+
+let fwP=[];
+function showFireworks(){
+  fwcv.width=CANVAS_W;fwcv.height=CANVAS_H;
+  const ov=document.getElementById('fwo');
+  document.getElementById('fwm').textContent=T[cfg.lang].correct;
+  ov.classList.add('show');fwP=[];
+  const cx2=120+Math.random()*400,cy2=40+Math.random()*80;
+  for(let i=0;i<80;i++) fwP.push({x:cx2,y:cy2,vx:(Math.random()-.5)*9,vy:(Math.random()-.5)*9,life:1,color:`hsl(${Math.random()*360},90%,65%)`});
+  let fr=0;
+  function fl(){fwx.clearRect(0,0,CANVAS_W,CANVAS_H);fwP.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.016;fwx.globalAlpha=Math.max(0,p.life);fwx.fillStyle=p.color;fwx.beginPath();fwx.arc(p.x,p.y,3,0,Math.PI*2);fwx.fill();});fwx.globalAlpha=1;fr++;if(fr<110)requestAnimationFrame(fl);else{ov.classList.remove('show');fwx.clearRect(0,0,CANVAS_W,CANVAS_H);}}
+  fl();
+}
+</script>
+</body>
+</html>
